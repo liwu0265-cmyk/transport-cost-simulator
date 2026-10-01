@@ -45,57 +45,6 @@ st.markdown(
         font-size: 1.8rem;
         font-weight: 700;
     }
-
-    .result-card {
-        border: 1px solid #d9dde3;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 16px;
-        background-color: #ffffff;
-    }
-
-    .result-title {
-        font-size: 0.9rem;
-        color: #555;
-        margin-bottom: 4px;
-    }
-
-    .result-value {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 6px;
-    }
-
-    .result-sub {
-        font-size: 0.9rem;
-        color: #666;
-        margin-top: 4px;
-    }
-
-    .cost-item {
-        border: 1px solid #e0e3e7;
-        border-radius: 10px;
-        padding: 12px 14px;
-        margin-bottom: 10px;
-        background-color: #ffffff;
-    }
-
-    .cost-name {
-        font-size: 0.95rem;
-        font-weight: 600;
-    }
-
-    .cost-value {
-        font-size: 1rem;
-        font-weight: 700;
-        text-align: right;
-    }
-
-    .cost-ratio {
-        font-size: 0.82rem;
-        color: #6b7280;
-        margin-top: 3px;
-    }
     </style>
     """,
     unsafe_allow_html=True
@@ -129,8 +78,6 @@ with left:
     c1, c2 = st.columns(2)
 
     with c1:
-
-        # 車両番号を手入力に変更
         vehicle_number = st.text_input(
             "車両番号",
             value="",
@@ -151,7 +98,6 @@ with left:
         )
 
     with c2:
-
         destination = st.text_input(
             "到着地",
             value="",
@@ -173,7 +119,6 @@ with left:
     c1, c2 = st.columns(2)
 
     with c1:
-
         fuel = st.number_input(
             "燃料費（円）",
             min_value=0,
@@ -205,7 +150,6 @@ with left:
         )
 
     with c2:
-
         highway = st.number_input(
             "高速料金（円）",
             min_value=0,
@@ -252,33 +196,28 @@ total_cost = (
     + other
 )
 
-# 1km当たり原価
-if distance > 0:
-    cost_per_km = total_cost / distance
-else:
-    cost_per_km = 0
+cost_per_km = total_cost / distance if distance > 0 else 0
 
-# 1t当たり原価
-if load_weight > 0:
-    cost_per_ton = total_cost / load_weight
-else:
-    cost_per_ton = 0
+cost_per_ton = (
+    total_cost / load_weight
+    if load_weight > 0
+    else 0
+)
 
-# 運賃検討額
 # 利益率は原価に対する上乗せ率
 freight_price = total_cost * (1 + profit_rate / 100)
 
-# 運賃 / km
-if distance > 0:
-    freight_per_km = freight_price / distance
-else:
-    freight_per_km = 0
+freight_per_km = (
+    freight_price / distance
+    if distance > 0
+    else 0
+)
 
-# 運賃 / t
-if load_weight > 0:
-    freight_per_ton = freight_price / load_weight
-else:
-    freight_per_ton = 0
+freight_per_ton = (
+    freight_price / load_weight
+    if load_weight > 0
+    else 0
+)
 
 # =========================================================
 # 右側：計算結果
@@ -287,55 +226,41 @@ with right:
 
     st.subheader("計算結果")
 
-    st.markdown(
-        f"""
-        <div class="result-card">
-            <div class="result-title">
-                輸送原価合計
-            </div>
+    with st.container(border=True):
 
-            <div class="result-value">
-                ¥{total_cost:,.0f}
-            </div>
+        st.write("輸送原価合計")
 
-            <div class="result-sub">
-                1km当たり原価：
-                ¥{cost_per_km:,.0f}/km
-            </div>
+        st.markdown(
+            f"## ¥{total_cost:,.0f}"
+        )
 
-            <div class="result-sub">
-                1t当たり原価：
-                ¥{cost_per_ton:,.0f}/t
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        st.write(
+            f"1km当たり原価："
+            f"¥{cost_per_km:,.0f}/km"
+        )
 
-    st.markdown(
-        f"""
-        <div class="result-card">
-            <div class="result-title">
-                運賃検討額
-            </div>
+        st.write(
+            f"1t当たり原価："
+            f"¥{cost_per_ton:,.0f}/t"
+        )
 
-            <div class="result-value">
-                ¥{freight_price:,.0f}
-            </div>
+    with st.container(border=True):
 
-            <div class="result-sub">
-                運賃換算：
-                ¥{freight_per_km:,.0f}/km
-            </div>
+        st.write("運賃検討額")
 
-            <div class="result-sub">
-                積載量換算：
-                ¥{freight_per_ton:,.0f}/t
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        st.markdown(
+            f"## ¥{freight_price:,.0f}"
+        )
+
+        st.write(
+            f"運賃換算："
+            f"¥{freight_per_km:,.0f}/km"
+        )
+
+        st.write(
+            f"積載量換算："
+            f"¥{freight_per_ton:,.0f}/t"
+        )
 
     st.caption(
         "利益率は「原価に対する上乗せ率」"
@@ -370,45 +295,22 @@ for i, (name, amount) in enumerate(cost_items):
     else:
         ratio = 0
 
-    html = f"""
-    <div class="cost-item">
+    target = col_a if i % 2 == 0 else col_b
 
-        <div style="
-            display:flex;
-            justify-content:space-between;
-        ">
+    with target:
+        with st.container(border=True):
+            c_name, c_value = st.columns([2, 1])
 
-            <div class="cost-name">
-                {name}
-            </div>
+            with c_name:
+                st.write(name)
 
-            <div class="cost-value">
-                ¥{amount:,.0f}
-            </div>
+            with c_value:
+                st.write(
+                    f"**¥{amount:,.0f}**"
+                )
 
-        </div>
-
-        <div class="cost-ratio">
-            原価構成比 {ratio:.1f}%
-        </div>
-
-    </div>
-    """
-
-    if i % 2 == 0:
-
-        with col_a:
-            st.markdown(
-                html,
-                unsafe_allow_html=True
-            )
-
-    else:
-
-        with col_b:
-            st.markdown(
-                html,
-                unsafe_allow_html=True
+            st.caption(
+                f"原価構成比 {ratio:.1f}%"
             )
 
 # =========================================================
@@ -421,35 +323,30 @@ st.subheader("運行情報まとめ")
 summary1, summary2, summary3, summary4, summary5 = st.columns(5)
 
 with summary1:
-
     st.metric(
         "車両番号",
         vehicle_number if vehicle_number else "未入力"
     )
 
 with summary2:
-
     st.metric(
         "出発地",
         departure if departure else "未入力"
     )
 
 with summary3:
-
     st.metric(
         "到着地",
         destination if destination else "未入力"
     )
 
 with summary4:
-
     st.metric(
         "走行距離",
         f"{distance:,.1f} km"
     )
 
 with summary5:
-
     st.metric(
         "積載量",
         f"{load_weight:,.1f} t"
